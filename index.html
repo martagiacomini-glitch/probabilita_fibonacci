@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorio di Probabilità | Dalle Illusioni dell'Azzardo a Bruno de Finetti</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- KaTeX for math formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body);"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            accent: {
+              500: '#8b5cf6',
+              600: '#7c3aed',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tab-active {
+      border-bottom: 3px solid #2563eb;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+    .roulette-wheel {
+      transition: transform 3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .dice {
+      transition: transform 0.5s ease;
+    }
+    .dice-rolling {
+      animation: roll 0.6s infinite linear;
+    }
+    @keyframes roll {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(1); }
+    }
+    /* Stile per formule matematiche KaTeX */
+    .katex { font-size: 1.08em; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 text-xl font-bold shadow-inner">
+          <i class="fa-solid fa-dice-d20"></i>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-extrabold tracking-tight flex items-center gap-2">
+            Percorso Didattico: Calcolo delle Probabilità
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-normal border border-blue-400/30">Liceo Scientifico</span>
+          </h1>
+          <p class="text-xs text-slate-300">Dalle illusioni del gioco d'azzardo alla definizione soggettivista di Bruno de Finetti</p>
+        </div>
+      </div>
+      
+      <!-- Docente Mode Switcher & Guide Link -->
+      <div class="flex items-center gap-3">
+        <button id="toggleTeacherMode" onclick="toggleTeacherMode()" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 hover:bg-amber-500/30 transition flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span id="teacherBtnText">Attiva Note Docente</span>
+        </button>
+        <button onclick="window.print()" class="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i> Stampa Scheda
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigazione Moduli -->
+    <nav class="bg-slate-900/80 border-t border-slate-800 px-4 sm:px-8">
+      <div class="max-w-7xl mx-auto flex overflow-x-auto space-x-2 sm:space-x-8 text-sm py-2">
+        <button onclick="switchTab('modulo1')" id="nav-modulo1" class="tab-btn px-3 py-2 text-slate-300 hover:text-white font-medium flex items-center gap-2 whitespace-nowrap tab-active">
+          <i class="fa-solid fa-dice text-amber-400"></i> 1. Azzardo & Fallacie
+        </button>
+        <button onclick="switchTab('modulo2')" id="nav-modulo2" class="tab-btn px-3 py-2 text-slate-300 hover:text-white font-medium flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-scale-balanced text-emerald-400"></i> 2. Definizioni a Confronto
+        </button>
+        <button onclick="switchTab('modulo3')" id="nav-modulo3" class="tab-btn px-3 py-2 text-slate-300 hover:text-white font-medium flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-brain text-purple-400"></i> 3. Il Soggettivismo & De Finetti
+        </button>
+        <button onclick="switchTab('modulo4')" id="nav-modulo4" class="tab-btn px-3 py-2 text-slate-300 hover:text-white font-medium flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-arrow-trend-up text-cyan-400"></i> 4. L'Aggiornamento Bayesiano
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- BANNER NOTA DOCENTE (DINAMICO) -->
+  <div id="teacherBanner" class="hidden bg-amber-50 border-b border-amber-200 py-3 px-4 sm:px-8 text-amber-900 text-sm">
+    <div class="max-w-7xl mx-auto flex items-start gap-3">
+      <i class="fa-solid fa-graduation-cap text-amber-600 text-lg mt-0.5"></i>
+      <div>
+        <strong class="font-semibold">Modalità Docente Attiva:</strong>
+        <span id="teacherNoteContent">Nei vari moduli sono ora visibili le indicazioni pedagogiche, i nodi concettuali critici, le domande guida per condurre la discussione in aula e i riferimenti al quadro delle Indicazioni Nazionali.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+    <!-- ========================================================== -->
+    <!-- MODULO 1: AZZARDO & FALLACIE                               -->
+    <!-- ========================================================== -->
+    <div id="modulo1" class="module-pane space-y-8">
+
+      <!-- Box Introduzione Didattica -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div class="flex items-center gap-2 text-amber-600 font-semibold text-sm uppercase tracking-wide">
+            <i class="fa-solid fa-compass"></i> Punto di Partenza
+          </div>
+          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">Tempo stimato: 45 min</span>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Perché partire dal gioco d'azzardo?</h2>
+        <p class="text-slate-600 leading-relaxed">
+          La mente umana è un formidabile cercatore di schemi anche dove regna solo il caso. Il calcolo delle probabilità nacque proprio nel XVII secolo dai quesiti posti dagli scommettitori ai matematici (Pascal, Fermat, Huygens).
+          Prima di formalizzare le formule, dobbiamo smascherare le <strong>illusioni cognitive</strong> che ingannano sia il giocatore d'azzardo sia lo studente inesperto.
+        </p>
+
+        <!-- Box Nota Docente -->
+        <div class="teacher-box hidden mt-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 text-sm">
+          <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+            <i class="fa-solid fa-chalkboard-user"></i> Nota Metodologica per il Docente:
+          </div>
+          <p>
+            Chiedere alla classe prima di iniziare le simulazioni: <em>"Se lanciamo una moneta per 6 volte ed escono 6 Teste consecutive, al settimo lancio è più probabile Croce per compensare?"</em>.
+            Far alzare le mani e annotare le percentuali alla lavagna. Questo aggancia subito l'attenzione e prepara alla rottura cognitiva della <strong>Gambler's Fallacy</strong> (fallacia dello scommettitore) e del concetto di <strong>eventi stocasticamente indipendenti</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- SIMULAZIONE 1: La Roulette e la Gambler's Fallacy -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white p-5 flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Esperimento 1</span>
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-circle-notch text-red-500"></i> La Roulette Francese e i "Numeri in Ritardo"
+            </h3>
+          </div>
+          <div class="text-xs text-slate-300">
+            37 caselle: 18 Rossi, 18 Neri, 1 Zero (verde)
+          </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Colonna Controlli -->
+          <div class="lg:col-span-5 space-y-5">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Pannello di Lancio</label>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="spinRoulette(1)" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold shadow transition">
+                  <i class="fa-solid fa-play mr-1"></i> 1 Lancio
+                </button>
+                <button onclick="spinRoulette(10)" class="px-3 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition">
+                  +10 Lanci
+                </button>
+                <button onclick="spinRoulette(100)" class="px-3 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition">
+                  +100 Lanci
+                </button>
+                <button onclick="findStreak(5)" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition">
+                  <i class="fa-solid fa-bolt mr-1"></i> Cerca 5 Rossi di fila
+                </button>
+                <button onclick="resetRoulette()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm transition">
+                  <i class="fa-solid fa-rotate-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Ultimo esito animato -->
+            <div class="text-center p-6 bg-slate-900 rounded-xl text-white relative overflow-hidden">
+              <span class="text-xs uppercase tracking-widest text-slate-400">Ultimo Numero Estratto</span>
+              <div id="rouletteLastNum" class="text-5xl font-black my-2 text-slate-200">-</div>
+              <div id="rouletteLastColor" class="text-sm font-semibold uppercase tracking-wider text-slate-400">In attesa di lancio...</div>
+              <div id="streakAlert" class="hidden mt-3 p-2 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-medium"></div>
+            </div>
+
+            <!-- Quiz Istantaneo Fallacia -->
+            <div id="gamblerQuizBox" class="hidden p-4 rounded-xl bg-indigo-50 border border-indigo-200">
+              <div class="text-xs font-bold text-indigo-900 uppercase mb-1">
+                <i class="fa-solid fa-circle-question"></i> Momento di Riflessione per la classe
+              </div>
+              <p class="text-sm text-indigo-950 font-medium mb-3">
+                Sono appena usciti 5 Rossi consecutivi! Cosa conviene puntare al prossimo giro?
+              </p>
+              <div class="space-y-2">
+                <button onclick="answerGamblerQuiz('nero')" class="w-full text-left text-xs p-2.5 rounded-lg bg-white hover:bg-indigo-100 border border-indigo-200 transition font-medium">
+                  A) Nero: è "in ritardo", la probabilità che esca è ora maggiore del 50%.
+                </button>
+                <button onclick="answerGamblerQuiz('uguale')" class="w-full text-left text-xs p-2.5 rounded-lg bg-white hover:bg-indigo-100 border border-indigo-200 transition font-medium">
+                  B) Indifferente: la pallina non ha memoria, la probabilità resta esattamente $18/37 \approx 48.65\%$.
+                </button>
+                <button onclick="answerGamblerQuiz('rosso')" class="w-full text-left text-xs p-2.5 rounded-lg bg-white hover:bg-indigo-100 border border-indigo-200 transition font-medium">
+                  C) Rosso: la roulette "è calda" e segue la serie favorevole.
+                </button>
+              </div>
+              <div id="gamblerQuizFeedback" class="hidden mt-3 p-3 rounded-lg text-xs leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- Colonna Statistiche & Storico -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="grid grid-cols-4 gap-2 text-center">
+              <div class="p-3 bg-slate-50 border rounded-xl">
+                <div class="text-xs text-slate-500">Totale Lanci</div>
+                <div id="statTotal" class="text-xl font-bold text-slate-800">0</div>
+              </div>
+              <div class="p-3 bg-red-50 border border-red-200 rounded-xl">
+                <div class="text-xs text-red-600 font-semibold">Rossi</div>
+                <div id="statRed" class="text-xl font-bold text-red-700">0 (0%)</div>
+              </div>
+              <div class="p-3 bg-slate-100 border border-slate-300 rounded-xl">
+                <div class="text-xs text-slate-700 font-semibold">Neri</div>
+                <div id="statBlack" class="text-xl font-bold text-slate-800">0 (0%)</div>
+              </div>
+              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                <div class="text-xs text-emerald-600 font-semibold">Zero (Verde)</div>
+                <div id="statZero" class="text-xl font-bold text-emerald-700">0 (0%)</div>
+              </div>
+            </div>
+
+            <!-- Visualizzatore Sequenza Recente -->
+            <div>
+              <div class="flex justify-between items-center text-xs text-slate-500 font-medium mb-1.5">
+                <span>Storico ultimi lanci (da sinistra a destra):</span>
+                <span id="streakCountText" class="font-mono text-slate-700">Serie attuale: 0</span>
+              </div>
+              <div id="rouletteHistory" class="flex gap-1 overflow-x-auto p-2 bg-slate-900 rounded-lg min-h-[48px] items-center">
+                <span class="text-xs text-slate-500 italic px-2">Nessun lancio effettuato</span>
+              </div>
+            </div>
+
+            <!-- Formalizzazione Matematica -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+              <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-square-root-variable text-blue-600"></i> Nesso Matematico: Indipendenza Stocastica
+              </div>
+              <p>
+                Due eventi $A$ e $B$ si dicono stocasticamente indipendenti se $P(A \cap B) = P(A) \cdot P(B)$, ovvero se:
+                $$P(A \mid B) = P(A)$$
+                La probabilità che esca Rosso al sesto lancio, dato che nei primi 5 è uscito Rosso, è:
+                $$P(R_6 \mid R_1 \cap R_2 \cap R_3 \cap R_4 \cap R_5) = P(R_6) = \frac{18}{37} \approx 48.65\%$$
+                La probabilità <em>a priori</em> di osservare 6 rossi di fila è modesta: $(18/37)^6 \approx 1.28\%$. Ma <strong>una volta che i primi 5 sono già accaduti</strong>, il loro passato non esercita alcuna forza fisica o causale sulla pallina.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULAZIONE 2: Il Paradosso del Cavaliere de Méré (1654) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white p-5 flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Esperimento Storico 2</span>
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-dice text-amber-500"></i> Il Paradosso del Cavaliere de Méré (1654)
+            </h3>
+          </div>
+          <div class="text-xs text-slate-300">
+            L'origine della teoria matematica della probabilità (Pascal e Fermat)
+          </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-6 space-y-4">
+            <div class="prose prose-sm text-slate-600">
+              <p>
+                Antoine Gombaud, noto come <strong>Cavaliere de Méré</strong>, era un accanito giocatore nella corte di Luigi XIV.
+                Guadagnava scommettendo di ottenere <strong>almeno un 6 in 4 lanci di un dado</strong>.
+                Pensò allora di proporre una scommessa apparentemente equivalente: ottenere <strong>almeno un doppio 6 in 24 lanci di due dadi</strong>.
+              </p>
+              <div class="p-3 bg-amber-50 border-l-4 border-amber-500 text-xs text-amber-900">
+                <strong>Il ragionamento (errato) del Cavaliere:</strong><br>
+                <em>"Con 1 dado i casi possibili sono 6, e io ho 4 lanci ($4/6 = 2/3$). Con 2 dadi i casi possibili sono 36, quindi moltiplicando per 6 le possibilità, 24 lanci ($24/36 = 2/3$) dovrebbero darmi lo stesso vantaggio!"</em>
+              </div>
+              <p>
+                Eppure, de Méré iniziò a perdere denaro e scrisse disperato a <strong>Blaise Pascal</strong>, ritenendo che "l'aritmetica si fosse contraddetta"!
+              </p>
+            </div>
+
+            <!-- Controlli Simulazione Monte Carlo -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase text-slate-600">Simulatore Monte Carlo</span>
+                <span id="deMereGamesCount" class="text-xs font-mono text-blue-600 font-bold">Partite: 0</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="runDeMereSimulation(100)" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow">
+                  Simula 100 Partite
+                </button>
+                <button onclick="runDeMereSimulation(1000)" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">
+                  Simula 1.000 Partite
+                </button>
+                <button onclick="runDeMereSimulation(5000)" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold shadow">
+                  Simula 5.000 Partite
+                </button>
+                <button onclick="resetDeMereSimulation()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs">
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grafico e Confronto Teorico -->
+          <div class="lg:col-span-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Gioco A -->
+              <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50">
+                <div class="text-xs font-bold text-emerald-800 uppercase">Gioco A: 1 Dado (4 lanci)</div>
+                <div class="text-2xl font-black text-emerald-700 mt-1" id="resDeMereA">0%</div>
+                <div class="text-xs text-slate-600 mt-1">Teorica: <strong>51.77%</strong> (Favorevole!)</div>
+                <div class="text-[11px] text-slate-500 font-mono mt-2 pt-2 border-t border-emerald-200">
+                  $$1 - \left(\frac{5}{6}\right)^4 = 1 - \frac{625}{1296}$$
+                </div>
+              </div>
+
+              <!-- Gioco B -->
+              <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/50">
+                <div class="text-xs font-bold text-rose-800 uppercase">Gioco B: 2 Dadi (24 lanci)</div>
+                <div class="text-2xl font-black text-rose-700 mt-1" id="resDeMereB">0%</div>
+                <div class="text-xs text-slate-600 mt-1">Teorica: <strong>49.14%</strong> (Sfavorevole!)</div>
+                <div class="text-[11px] text-slate-500 font-mono mt-2 pt-2 border-t border-rose-200">
+                  $$1 - \left(\frac{35}{36}\right)^{24} \approx 0.4914$$
+                </div>
+              </div>
+            </div>
+
+            <!-- Canvas Grafico Frequenza -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 h-56">
+              <canvas id="deMereChart"></canvas>
+            </div>
+            <p class="text-[11px] text-slate-500 text-center italic">
+              All'aumentare dei lanci (Legge dei Grandi Numeri), la frequenza empirica converge alle rette teoriche tratteggiate.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIMULAZIONE 3: Valore Atteso e la Rovina del Giocatore -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-500">Concetto Chiave</span>
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-coins text-amber-500"></i> La Speranza Matematica: Perché il Banco Vince Sempre
+            </h3>
+          </div>
+          <span class="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-semibold">Tassa sull'ignoranza</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1">Roulette (Rosso/Nero)</h4>
+            <p class="text-xs text-slate-600 mb-2">Punti 1€ sul Rosso. Vinci 1€ se esce rosso, perdi 1€ altrimenti.</p>
+            <div class="text-xs font-mono bg-white p-2 rounded border border-slate-200 text-red-600 font-semibold">
+              $$E[X] = 1 \cdot \frac{18}{37} - 1 \cdot \frac{19}{37} = -\frac{1}{37} \approx -2.70\%$$
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Su ogni 100€ giocati, il banco trattiene mediamente 2,70€.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1">Gratta e Vinci tipico (5€)</h4>
+            <p class="text-xs text-slate-600 mb-2">Il "payout" legale restituito in vincite è circa il 70-73% della raccolta.</p>
+            <div class="text-xs font-mono bg-white p-2 rounded border border-slate-200 text-red-600 font-semibold">
+              $$E[X] \approx -27\% \text{ a giocata}$$
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Perdi circa 1,35€ istantaneamente ad ogni biglietto da 5€ acquistato.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="font-bold text-slate-800 text-sm mb-1">Il Gioco del Lotto (Singolo estratto)</h4>
+            <p class="text-xs text-slate-600 mb-2">Indovinare 1 numero su 90 estratti su 5. La probabilità è $5/90 = 1/18$.</p>
+            <div class="text-xs font-mono bg-white p-2 rounded border border-slate-200 text-red-600 font-semibold">
+              $$\text{Quota equa} = 18\times \quad | \quad \text{Paga} = 11.23\times$$
+            </div>
+            <p class="text-[11px] text-slate-500 mt-2">Trattenuta del banco: oltre il <strong>37.6%</strong>!</p>
+          </div>
+        </div>
+
+        <!-- Simulatore Rovina del Giocatore -->
+        <div class="bg-slate-900 text-white p-5 rounded-xl space-y-4">
+          <div class="flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <h4 class="font-bold text-sm text-slate-200">Simulatore della "Rovina del Giocatore" (Gambler's Ruin)</h4>
+              <p class="text-xs text-slate-400">Parti con 100€ di capitale e punti 5€ a giro alla Roulette sul Rosso. Quanti giri resisti?</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="simulatePlayerRuin()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow">
+                <i class="fa-solid fa-play mr-1"></i> Avvia Partita Continua
+              </button>
+              <button onclick="resetPlayerRuin()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs">
+                Reset
+              </button>
+            </div>
+          </div>
+          <div class="h-44 w-full bg-slate-950 p-2 rounded-lg">
+            <canvas id="ruinChart"></canvas>
+          </div>
+          <div id="ruinSummary" class="text-xs text-slate-300 flex justify-between items-center">
+            <span>Capitale attuale: <strong id="ruinCapital" class="text-emerald-400 font-mono text-sm">100 €</strong></span>
+            <span>Giri giocati: <strong id="ruinSpins" class="text-slate-200 font-mono">0</strong></span>
+            <span id="ruinStatusText" class="text-slate-400">In attesa di avvio</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 2: DEFINIZIONI A CONFRONTO                          -->
+    <!-- ========================================================== -->
+    <div id="modulo2" class="module-pane hidden space-y-8">
+      
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div class="flex items-center gap-2 text-emerald-600 font-semibold text-sm uppercase tracking-wide">
+            <i class="fa-solid fa-scale-balanced"></i> Filosofia ed Epistemologia della Scienza
+          </div>
+          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">Tempo stimato: 45 min</span>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">I Quattro Volti della Probabilità</h2>
+        <p class="text-slate-600 leading-relaxed">
+          Tutti usano la parola "probabilità", ma cosa <em>significa</em> realmente? Nei secoli i matematici e filosofi si sono scontrati su questa domanda.
+          Ciascuna definizione risolve alcuni problemi ma si infrange contro paradossi o limiti insormontabili quando applicata alla realtà.
+        </p>
+
+        <!-- Box Nota Docente -->
+        <div class="teacher-box hidden mt-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 text-sm">
+          <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+            <i class="fa-solid fa-chalkboard-user"></i> Spunto per il Dibattito in Aula:
+          </div>
+          <p>
+            Proporre alla classe l'evento: <em>"L'imputato nel processo X è colpevole"</em>.
+            Chiedere: possiamo calcolare i "casi favorevoli su casi possibili"? No, non ci sono dadi. Possiamo ripetere il processo 10.000 volte in condizioni identiche per fare la frequenza? No, è un evento unico nella storia.
+            Eppure la giuria deve decidere "oltre ogni ragionevole dubbio" (assegnando una probabilità soggettiva!).
+          </p>
+        </div>
+      </div>
+
+      <!-- Griglia Comparativa Interattiva -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 1. Classica -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-blue-200 hover:border-blue-400 transition space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800">1. Definizione Classica</span>
+            <span class="text-xs text-slate-400 font-serif">P.S. Laplace (1814)</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Rapporto Casi Favorevoli / Possibili</h3>
+          <div class="p-3 bg-slate-50 rounded-xl font-mono text-xs text-center border border-slate-200">
+            $$P(E) = \frac{\text{numero di casi favorevoli ad } E}{\text{numero totale di casi possibili}}$$
+          </div>
+          <div class="space-y-2 text-xs text-slate-600">
+            <div class="flex items-start gap-2 text-emerald-700">
+              <i class="fa-solid fa-circle-check mt-0.5"></i>
+              <span><strong>Punto di forza:</strong> Intuitiva e calcolabile a priori con il calcolo combinatorio per giochi simmetrici (dadi, carte, roulette).</span>
+            </div>
+            <div class="flex items-start gap-2 text-rose-700">
+              <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+              <span><strong>Il Limite fatale (Circolo Vizioso):</strong> Presuppone che tutti i casi possibili siano <em>"ugualmente probabili"</em>. Si definisce la probabilità usando la probabilità stessa! Inoltre è inservibile per dadi truccati o fenomeni continui.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Frequentista -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-emerald-200 hover:border-emerald-400 transition space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">2. Definizione Frequentista</span>
+            <span class="text-xs text-slate-400 font-serif">R. von Mises (1928)</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Limite della Frequenza Relativa</h3>
+          <div class="p-3 bg-slate-50 rounded-xl font-mono text-xs text-center border border-slate-200">
+            $$P(E) = \lim_{n \to \infty} \frac{k_n}{n} \quad (k_n = \text{successi su } n \text{ prove})$$
+          </div>
+          <div class="space-y-2 text-xs text-slate-600">
+            <div class="flex items-start gap-2 text-emerald-700">
+              <i class="fa-solid fa-circle-check mt-0.5"></i>
+              <span><strong>Punto di forza:</strong> Empirica e sperimentale: funziona per misurare monete truccate, tassi di decadimento radioattivo o guasti industriali.</span>
+            </div>
+            <div class="flex items-start gap-2 text-rose-700">
+              <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+              <span><strong>Il Limite fatale:</strong> Nessuno può compiere infinite prove. Cosa significa "condizioni identiche"? E soprattutto: è totalmente cieca di fronte agli <strong>eventi unici o irripetibili</strong> (elezioni, clima, terremoti, decisioni umane).</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Assiomatica -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-slate-300 hover:border-slate-400 transition space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-800">3. Impostazione Assiomatica</span>
+            <span class="text-xs text-slate-400 font-serif">A.N. Kolmogorov (1933)</span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Misura di Probabilità su $\sigma$-algebra</h3>
+          <div class="p-3 bg-slate-50 rounded-xl font-mono text-xs text-center border border-slate-200">
+            $$1) \; P(E) \ge 0 \quad 2) \; P(\Omega) = 1 \quad 3) \; P(\bigcup E_i) = \sum P(E_i)$$
+          </div>
+          <div class="space-y-2 text-xs text-slate-600">
+            <div class="flex items-start gap-2 text-emerald-700">
+              <i class="fa-solid fa-circle-check mt-0.5"></i>
+              <span><strong>Punto di forza:</strong> Rigore matematico assoluto. Unifica il calcolo delle probabilità nella teoria della misura e dell'integrazione di Lebesgue.</span>
+            </div>
+            <div class="flex items-start gap-2 text-amber-700">
+              <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+              <span><strong>Il Limite concettuale:</strong> È un formalismo sintattico puro. Dice quali proprietà matematiche deve avere la funzione $P$, ma <strong>non spiega come assegnare concretamente il valore numerico</strong> di $P(E)$ al singolo evento reale!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Soggettivista -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-purple-300 hover:border-purple-500 transition space-y-4 shadow-purple-50">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800">4. Definizione Soggettivista</span>
+            <span class="text-xs text-purple-700 font-serif font-bold">Bruno de Finetti (1931) & F. Ramsey</span>
+          </div>
+          <h3 class="text-lg font-bold text-purple-950">Grado di Fiducia & Coerenza nelle Scommesse</h3>
+          <div class="p-3 bg-purple-50 rounded-xl font-mono text-xs text-center border border-purple-200 text-purple-900">
+            $$P(E) = \text{prezzo } p \text{ per ricevere } 1€ \text{ se } E \text{ accade, con scommessa reversibile!}$$
+          </div>
+          <div class="space-y-2 text-xs text-slate-600">
+            <div class="flex items-start gap-2 text-emerald-700">
+              <i class="fa-solid fa-circle-check mt-0.5"></i>
+              <span><strong>Punto di forza:</strong> Si applica a QUALSIASI evento (ripetibile o no). Riconosce onestamente che la probabilità riflette lo stato di informazione del soggetto e non un "fluido oggettivo" nelle cose.</span>
+            </div>
+            <div class="flex items-start gap-2 text-indigo-700">
+              <i class="fa-solid fa-lightbulb mt-0.5"></i>
+              <span><strong>Il Risultato Rivoluzionario:</strong> Gli assiomi di Kolmogorov non sono imposti per decreto, ma sono la conseguenza logica del <strong>principio di coerenza</strong> (nessuno deve poterti truffare con un <em>Dutch Book</em>).</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quiz Interattivo Epistemologico -->
+      <div class="bg-slate-900 text-white rounded-2xl p-6 space-y-5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">Palestra Filosofica</span>
+            <h3 class="text-lg font-bold text-slate-100">Quale definizione è in grado di gestire questi eventi?</h3>
+          </div>
+          <span class="text-xs text-slate-400">Mettiti alla prova</span>
+        </div>
+
+        <div id="quizEpistContainer" class="space-y-4">
+          <!-- Popolato dinamicamente da JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 3: IL SOGGETTIVISMO & DE FINETTI                    -->
+    <!-- ========================================================== -->
+    <div id="modulo3" class="module-pane hidden space-y-8">
+      
+      <!-- Provocazione De Finetti -->
+      <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl font-serif">
+          <i class="fa-solid fa-quote-right"></i>
+        </div>
+        <div class="max-w-3xl space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30 text-xs font-medium">
+            <i class="fa-solid fa-fire text-amber-400"></i> La Provocazione Epistemologica
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            «PROBABILITY DOES NOT EXIST»
+          </h2>
+          <blockquote class="text-slate-300 text-base sm:text-lg italic leading-relaxed border-l-4 border-purple-400 pl-4 my-3">
+            "La probabilità non esiste. L'abbandono di feticci superstiziosi sembra sia stato e sia tuttora tutt'altro che semplice [...]. La probabilità, intesa come qualcosa di oggettivo che esista di per sé nella natura indipendentemente da noi, è solo una personificazione fallace."
+          </blockquote>
+          <p class="text-xs text-purple-200">
+            — <strong>Bruno de Finetti</strong>, incipit del trattato <em>Teoria delle Probabilità</em> (1970)
+          </p>
+        </div>
+      </div>
+
+      <!-- Spiegazione Operativa della Scommessa Coerente -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-handshake-simple text-blue-600"></i> Come si misura oggettivamente un'opinione soggettiva?
+        </h3>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Se la probabilità è solo un'opinione, ognuno può sparare numeri a caso senza criteri? <strong>Assolutamente no!</strong>
+          De Finetti introduce un criterio operativo rigoroso basato sulle scommesse reali con denaro:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 space-y-2">
+            <div class="font-bold text-blue-900 text-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-ticket text-blue-600"></i> 1. Il Prezzo Equo del Biglietto
+            </div>
+            <p class="text-slate-700">
+              Considera una lotteria che paga <strong>1 €</strong> se l'evento $E$ si verifica, e <strong>0 €</strong> se non si verifica.
+              La probabilità $P(E) = p$ che tu assegni a $E$ è il prezzo $p$ (compreso tra 0 e 1) che ritieni <em>equo</em> pagare per comprare quel biglietto.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2">
+            <div class="font-bold text-purple-900 text-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate text-purple-600"></i> 2. La Clausola di Reversibilità (Doppio Senso)
+            </div>
+            <p class="text-slate-700">
+              <strong>Il vincolo di responsabilità:</strong> Se dichiari che il prezzo equo è $p$, devi essere pronto indifferentemente a:
+              <br>• <strong>Comprare</strong> il biglietto a $p$€ dallo scommettitore;
+              <br>• <strong>Vendere</strong> il biglietto (fare tu da banco) a $p$€ pagando 1€ in caso di vittoria!
+            </p>
+          </div>
+        </div>
+
+        <!-- Box Nota Docente -->
+        <div class="teacher-box hidden mt-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 text-sm">
+          <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+            <i class="fa-solid fa-chalkboard-user"></i> Perché la reversibilità costringe alla sincerità?
+          </div>
+          <p>
+            Se uno studente dicesse superficialmente: <em>"Per me che esca Testa ha probabilità 90%"</em>, con la reversibilità un compagno gli risponderebbe subito: <em>"Perfetto, allora vendimi il biglietto a 0,90€! Se esce Croce tu hai incassato 0,90€ e mi dai 0€, ma se esce Testa (che accade nel 50% dei casi) devi sborsare 1€"</em>.
+            In brevissimo tempo lo studente che scommette cifre non meditate viene spennato!
+          </p>
+        </div>
+      </div>
+
+      <!-- SIMULATORE APPLICATIVO: IL DUTCH BOOK (IL LIBRO OLANDESE) -->
+      <div class="bg-white rounded-2xl shadow-sm border-2 border-indigo-200 overflow-hidden">
+        <div class="bg-indigo-900 text-white p-5 flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Laboratorio Interattivo</span>
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-calculator text-cyan-400"></i> Il "Dutch Book Scanner": Sei uno Scommettitore Coerente?
+            </h3>
+          </div>
+          <div class="text-xs bg-indigo-800/80 px-3 py-1 rounded-full text-indigo-200 border border-indigo-700">
+            Teorema di Coerenza di de Finetti
+          </div>
+        </div>
+
+        <div class="p-6 space-y-6">
+          <div class="text-sm text-slate-600 leading-relaxed">
+            Immagina di essere il banco scommesse per una gara a 3 esiti mutualmente esclusivi (es. Partita di Calcio: <strong>Vittoria Squadra A [1], Pareggio [X], Vittoria Squadra B [2]</strong>).
+            Assegna la tua probabilità soggettiva $p_1, p_2, p_3$ a ciascun esito (prezzo per vincere 1€).
+            Poi clicca su <strong>"Verifica Coerenza"</strong>: se le tue quote violano la somma unitaria, l'algoritmo genererà un <em>Dutch Book</em> che ti farà <strong>perdere denaro con certezza matematica</strong> qualunque sia l'esito finale!
+          </div>
+
+          <!-- Modulo Input Quote -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-200">
+            <!-- Esito 1 -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Vittoria Squadra A (1)</span>
+                <span id="labelP1" class="font-mono text-blue-600 text-sm">0.50 (50%)</span>
+              </div>
+              <input type="range" id="inputP1" min="0.05" max="0.90" step="0.05" value="0.50" oninput="updateDutchBookInputs()" class="w-full accent-blue-600">
+              <div class="text-[11px] text-slate-500">Prezzo del biglietto $p_1$ per vincere 1€</div>
+            </div>
+
+            <!-- Esito X -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Pareggio (X)</span>
+                <span id="labelPX" class="font-mono text-blue-600 text-sm">0.30 (30%)</span>
+              </div>
+              <input type="range" id="inputPX" min="0.05" max="0.90" step="0.05" value="0.30" oninput="updateDutchBookInputs()" class="w-full accent-blue-600">
+              <div class="text-[11px] text-slate-500">Prezzo del biglietto $p_X$ per vincere 1€</div>
+            </div>
+
+            <!-- Esito 2 -->
+            <div class="space-y-2">
+              <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                <span>Vittoria Squadra B (2)</span>
+                <span id="labelP2" class="font-mono text-blue-600 text-sm">0.40 (40%)</span>
+              </div>
+              <input type="range" id="inputP2" min="0.05" max="0.90" step="0.05" value="0.40" oninput="updateDutchBookInputs()" class="w-full accent-blue-600">
+              <div class="text-[11px] text-slate-500">Prezzo del biglietto $p_2$ per vincere 1€</div>
+            </div>
+          </div>
+
+          <!-- Barra Somma Quote & Pulsante Verifica -->
+          <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-100 border border-slate-300">
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold text-slate-700 uppercase">Somma delle tue probabilità $\sum p_i$:</span>
+              <span id="sumPBadge" class="text-lg font-black font-mono px-3 py-1 rounded-lg bg-red-100 text-red-700 border border-red-300">
+                1.20 (120%)
+              </span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="setDutchExample(1.20)" class="text-xs px-2.5 py-1.5 rounded bg-white hover:bg-slate-200 border text-slate-700 font-medium">
+                Esempio Incoerente ($\sum = 1.20$)
+              </button>
+              <button onclick="setDutchExample(0.80)" class="text-xs px-2.5 py-1.5 rounded bg-white hover:bg-slate-200 border text-slate-700 font-medium">
+                Esempio Incoerente ($\sum = 0.80$)
+              </button>
+              <button onclick="setDutchExample(1.00)" class="text-xs px-2.5 py-1.5 rounded bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-medium">
+                Esempio Coerente ($\sum = 1.00$)
+              </button>
+            </div>
+          </div>
+
+          <!-- Risultato Analisi Dutch Book -->
+          <div id="dutchBookResultBox" class="p-6 rounded-2xl border transition-all">
+            <!-- Popolato via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TEST DI CALIBRAZIONE PERSONALE (BRIER SCORE) -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-purple-600">Esperimento Psicologico e Matematico</span>
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-purple-600"></i> Quanto sei ben calibrato? Il Test del "Brier Score"
+            </h3>
+          </div>
+          <span class="text-xs bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">Overconfidence Bias</span>
+        </div>
+
+        <p class="text-slate-600 text-sm">
+          Un individuo soggettivista razionale non solo formula stime di probabilità coerenti, ma è anche <strong>ben calibrato</strong>: quando dice di essere sicuro al 90%, dovrebbe avere ragione circa il 90% delle volte. Nella realtà, gli esseri umani soffrono sistematicamente di <em>sovrasicurezza (overconfidence)</em>.
+        </p>
+
+        <!-- Quiz Calibrazione -->
+        <div id="brierQuestionsContainer" class="space-y-4">
+          <!-- 3-4 domande curiose popolate via JS -->
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button id="btnComputeBrier" onclick="calculateBrierScore()" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-square-poll-vertical"></i> Calcola il Mio Indice di Calibrazione (Brier Score)
+          </button>
+        </div>
+
+        <div id="brierResultBox" class="hidden p-6 rounded-2xl bg-purple-50 border border-purple-200 space-y-3">
+          <!-- Popolato via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 4: AGGIORNAMENTO BAYESIANO                          -->
+    <!-- ========================================================== -->
+    <div id="modulo4" class="module-pane hidden space-y-8">
+      
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div class="flex items-center gap-2 text-cyan-600 font-semibold text-sm uppercase tracking-wide">
+            <i class="fa-solid fa-arrow-trend-up"></i> La Dinamica della Conoscenza
+          </div>
+          <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-mono">Tempo stimato: 45 min</span>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Come Cambiare Idea: Il Teorema di Bayes</h2>
+        <p class="text-slate-600 leading-relaxed">
+          Se la probabilità è il mio grado di fiducia soggettivo, cosa succede quando arrivano <strong>nuovi dati empirici</strong>?
+          L'approccio soggettivista non è un'opinione statica o dogmatica: il pensiero scientifico bayesiano è un meccanismo rigoroso per <em>aggiornare</em> la convinzione a priori alla luce delle prove.
+        </p>
+
+        <div class="my-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-mono text-slate-800">
+          $$P(\text{Ipotesi} \mid \text{Dati}) = \frac{P(\text{Dati} \mid \text{Ipotesi}) \cdot P(\text{Ipotesi})}{P(\text{Dati})} = \frac{\text{Verosimiglianza} \times \text{Prior}}{\text{Evidenza}}$$
+        </div>
+
+        <!-- Box Nota Docente -->
+        <div class="teacher-box hidden mt-4 p-4 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 text-sm">
+          <div class="font-bold flex items-center gap-1.5 mb-1 text-amber-800">
+            <i class="fa-solid fa-chalkboard-user"></i> Connessione con il Metodo Scientifico:
+          </div>
+          <p>
+            Questo modulo colma il ponte tra matematica e filosofia della scienza: come possiamo essere razionali nell'incertezza?
+            La frase celebre attribuita all'economista John Maynard Keynes sintetizza questo spirito: <em>"When the facts change, I change my mind. What do you do, sir?"</em> (Quando i fatti cambiano, io cambio idea. Lei cosa fa, signore?).
+          </p>
+        </div>
+      </div>
+
+      <!-- SIMULATORE BAYESIANO: Il Dado Sospetto -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white p-5 flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-cyan-400">Simulatore Interattivo</span>
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-box-archive text-amber-400"></i> L'Indagine: Il Dado Pescato dal Sacchetto è Truccato?
+            </h3>
+          </div>
+          <div class="text-xs text-slate-300">
+            Prior: 4 Dadi Equi (80%) vs 1 Dado Truccato (20%)
+          </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <!-- Colonna Descrizione e Controlli -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="p-4 bg-blue-50/60 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-2">
+              <div class="font-bold text-sm text-blue-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> Lo Scenario
+              </div>
+              <p>
+                In un sacchetto ci sono <strong>5 dadi identici alla vista</strong>:
+              </p>
+              <ul class="list-disc list-inside space-y-1">
+                <li><strong>4 Dadi Equi:</strong> Il numero 6 esce con probabilità $P(6 \mid \text{Equo}) = 1/6 \approx 16.7\%$.</li>
+                <li><strong>1 Dado Truccato:</strong> È piombato, il 6 esce con probabilità $P(6 \mid \text{Truccato}) = 1/2 = 50\%$, mentre gli altri 5 numeri si dividono equamente il restante $50\%$.</li>
+              </ul>
+              <p class="pt-1">
+                Peschiamo un dado alla cieca. Prima di lanciarlo, la probabilità a priori che sia quello truccato è:
+                $$P(\text{Truccato}) = \frac{1}{5} = 20\%$$
+              </p>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">Scegli quale dado testare in segreto:</label>
+              <div class="flex gap-2">
+                <button id="btnPickFair" onclick="pickSecretDie(false)" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow">
+                  Estrai Dado Equo
+                </button>
+                <button id="btnPickLoaded" onclick="pickSecretDie(true)" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow">
+                  Estrai Dado Truccato
+                </button>
+                <button id="btnPickRandom" onclick="pickSecretDie(null)" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow">
+                  Casuale (1/5)
+                </button>
+              </div>
+
+              <div class="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
+                <button onclick="rollSecretDie(1)" class="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow">
+                  <i class="fa-solid fa-dice mr-1"></i> Lancia 1 Volta
+                </button>
+                <button onclick="rollSecretDie(5)" class="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium">
+                  +5 Lanci
+                </button>
+                <button onclick="rollSecretDie(20)" class="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium">
+                  +20 Lanci
+                </button>
+                <button onclick="resetBayesExperiment()" class="py-2 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs">
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <!-- Visualizzazione Ultimo Dado Estratto -->
+            <div class="p-4 bg-slate-900 text-white rounded-xl text-center space-y-1">
+              <div class="text-xs uppercase tracking-widest text-slate-400">Ultimo Lancio</div>
+              <div id="bayesLastRoll" class="text-4xl font-black text-amber-400 my-1">-</div>
+              <div id="bayesRollsStats" class="text-xs text-slate-300">Lanci totali: 0 | Numero di 6 usciti: 0</div>
+            </div>
+          </div>
+
+          <!-- Colonna Grafico di Aggiornamento del Grado di Fiducia -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-xs text-slate-500 uppercase font-semibold">Grado di Fiducia Attuale $P(\text{Truccato} \mid \text{Dati})$</span>
+                <div id="currentPosteriorProb" class="text-3xl font-black text-cyan-600">20.0%</div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-slate-500 uppercase font-semibold">Giudizio Razionale</span>
+                <div id="currentBayesVerdict" class="text-xs font-bold text-slate-700 mt-1">Incertezza iniziale (Prior)</div>
+              </div>
+            </div>
+
+            <!-- Grafico Evoluzione Posterior -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 h-64">
+              <canvas id="bayesChart"></canvas>
+            </div>
+            
+            <div class="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 leading-relaxed border border-slate-200">
+              <strong>Cosa osservare con la classe:</strong>
+              Ad ogni uscita del numero 6, la curva compie un balzo verso l'alto (aumenta la probabilità che il dado sia truccato). Se invece esce un numero diverso da 6 (1, 2, 3, 4, 5), la curva scende dolcemente verso il basso.
+              Dopo 10-15 lanci, la verità empirica emerge quasi inequivocabilmente (sopra il 95% o sotto il 2%), superando il bias soggettivo di partenza.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-6 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <p class="font-semibold text-slate-200">Percorso Didattico di Probabilità — Liceo Scientifico</p>
+        <p class="mt-0.5 text-slate-400">Ispirato al pensiero di Bruno de Finetti (1906–1985), Blaise Pascal e Pierre-Simon Laplace.</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>File: <code>index.html</code> (Autonomo & Standalone)</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================== -->
+  <!-- JAVASCRIPT LOGIC & SIMULATORS                              -->
+  <!-- ========================================================== -->
+  <script>
+    // --- GESTIONE SCHEDE & MODALITÀ DOCENTE ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.module-pane').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active');
+      });
+      document.getElementById('nav-' + tabId).classList.add('tab-active');
+
+      // Refresh charts se necessario
+      if (tabId === 'modulo1' && window.deMereChart) window.deMereChart.resize();
+      if (tabId === 'modulo4' && window.bayesChart) window.bayesChart.resize();
+    }
+
+    let isTeacherMode = false;
+    function toggleTeacherMode() {
+      isTeacherMode = !isTeacherMode;
+      const banner = document.getElementById('teacherBanner');
+      const boxes = document.querySelectorAll('.teacher-box');
+      const btnText = document.getElementById('teacherBtnText');
+
+      if (isTeacherMode) {
+        banner.classList.remove('hidden');
+        boxes.forEach(b => b.classList.remove('hidden'));
+        btnText.textContent = "Disattiva Note Docente";
+      } else {
+        banner.classList.add('hidden');
+        boxes.forEach(b => b.classList.add('hidden'));
+        btnText.textContent = "Attiva Note Docente";
+      }
+    }
+
+    // ==========================================================
+    // MODULO 1: ROULETTE & GAMBLER'S FALLACY
+    // ==========================================================
+    const rouletteRedNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+    let rouletteHistory = [];
+    let rouletteStats = { total: 0, red: 0, black: 0, zero: 0 };
+    let currentStreak = { color: null, count: 0 };
+
+    function spinRoulette(times = 1) {
+      for (let t = 0; t < times; t++) {
+        const num = Math.floor(Math.random() * 37); // 0..36
+        let color = 'black';
+        if (num === 0) color = 'green';
+        else if (rouletteRedNumbers.includes(num)) color = 'red';
+
+        rouletteStats.total++;
+        if (color === 'red') rouletteStats.red++;
+        else if (color === 'black') rouletteStats.black++;
+        else rouletteStats.zero++;
+
+        if (color === currentStreak.color) {
+          currentStreak.count++;
+        } else {
+          currentStreak.color = color;
+          currentStreak.count = 1;
+        }
+
+        rouletteHistory.unshift({ num, color });
+        if (rouletteHistory.length > 40) rouletteHistory.pop();
+      }
+
+      updateRouletteUI();
+    }
+
+    function findStreak(targetLength = 5) {
+      let spins = 0;
+      let found = false;
+      while (spins < 10000 && !found) {
+        spins++;
+        const num = Math.floor(Math.random() * 37);
+        let color = 'black';
+        if (num === 0) color = 'green';
+        else if (rouletteRedNumbers.includes(num)) color = 'red';
+
+        rouletteStats.total++;
+        if (color === 'red') rouletteStats.red++;
+        else if (color === 'black') rouletteStats.black++;
+        else rouletteStats.zero++;
+
+        if (color === currentStreak.color) {
+          currentStreak.count++;
+        } else {
+          currentStreak.color = color;
+          currentStreak.count = 1;
+        }
+
+        rouletteHistory.unshift({ num, color });
+        if (rouletteHistory.length > 40) rouletteHistory.pop();
+
+        if (currentStreak.color === 'red' && currentStreak.count >= targetLength) {
+          found = true;
+        }
+      }
+
+      updateRouletteUI();
+
+      if (found) {
+        const quizBox = document.getElementById('gamblerQuizBox');
+        quizBox.classList.remove('hidden');
+        document.getElementById('streakAlert').classList.remove('hidden');
+        document.getElementById('streakAlert').innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Trovata serie di <strong>${currentStreak.count} Rossi consecutivi</strong> dopo ${spins} lanci! Rispondi al quiz in basso.`;
+      }
+    }
+
+    function updateRouletteUI() {
+      if (rouletteHistory.length === 0) return;
+      const last = rouletteHistory[0];
+      const lastNumEl = document.getElementById('rouletteLastNum');
+      const lastColorEl = document.getElementById('rouletteLastColor');
+
+      lastNumEl.textContent = last.num;
+      if (last.color === 'red') {
+        lastNumEl.className = "text-5xl font-black my-2 text-red-500";
+        lastColorEl.textContent = "Rosso (Pari/Dispari)";
+      } else if (last.color === 'black') {
+        lastNumEl.className = "text-5xl font-black my-2 text-slate-200";
+        lastColorEl.textContent = "Nero (Pari/Dispari)";
+      } else {
+        lastNumEl.className = "text-5xl font-black my-2 text-emerald-400";
+        lastColorEl.textContent = "Zero (Verde - Il Vantaggio del Banco!)";
+      }
+
+      // Statistiche
+      const tot = rouletteStats.total;
+      document.getElementById('statTotal').textContent = tot;
+      document.getElementById('statRed').textContent = `${rouletteStats.red} (${tot > 0 ? ((rouletteStats.red/tot)*100).toFixed(1) : 0}%)`;
+      document.getElementById('statBlack').textContent = `${rouletteStats.black} (${tot > 0 ? ((rouletteStats.black/tot)*100).toFixed(1) : 0}%)`;
+      document.getElementById('statZero').textContent = `${rouletteStats.zero} (${tot > 0 ? ((rouletteStats.zero/tot)*100).toFixed(1) : 0}%)`;
+
+      document.getElementById('streakCountText').textContent = `Serie attuale: ${currentStreak.count} ${currentStreak.color === 'red' ? 'Rossi' : currentStreak.color === 'black' ? 'Neri' : 'Zeri'}`;
+
+      // Storico chip
+      const historyContainer = document.getElementById('rouletteHistory');
+      historyContainer.innerHTML = '';
+      rouletteHistory.forEach(item => {
+        const badge = document.createElement('div');
+        const bg = item.color === 'red' ? 'bg-red-600 text-white' : item.color === 'black' ? 'bg-slate-800 text-white border border-slate-700' : 'bg-emerald-600 text-white';
+        badge.className = `w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold shadow ${bg}`;
+        badge.textContent = item.num;
+        historyContainer.appendChild(badge);
+      });
+    }
+
+    function resetRoulette() {
+      rouletteHistory = [];
+      rouletteStats = { total: 0, red: 0, black: 0, zero: 0 };
+      currentStreak = { color: null, count: 0 };
+      document.getElementById('rouletteLastNum').textContent = "-";
+      document.getElementById('rouletteLastNum').className = "text-5xl font-black my-2 text-slate-200";
+      document.getElementById('rouletteLastColor').textContent = "In attesa di lancio...";
+      document.getElementById('streakAlert').classList.add('hidden');
+      document.getElementById('gamblerQuizBox').classList.add('hidden');
+      document.getElementById('rouletteHistory').innerHTML = '<span class="text-xs text-slate-500 italic px-2">Nessun lancio effettuato</span>';
+      document.getElementById('statTotal').textContent = "0";
+      document.getElementById('statRed').textContent = "0 (0%)";
+      document.getElementById('statBlack').textContent = "0 (0%)";
+      document.getElementById('statZero').textContent = "0 (0%)";
+    }
+
+    function answerGamblerQuiz(choice) {
+      const fb = document.getElementById('gamblerQuizFeedback');
+      fb.classList.remove('hidden');
+      if (choice === 'uguale') {
+        fb.className = "mt-3 p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 border border-emerald-300 text-emerald-900";
+        fb.innerHTML = `<strong>Esatto! Eccellente pensiero scientifico.</strong><br>
+        La roulette è un oggetto fisico inanimato privo di memoria. La probabilità che esca Nero al sesto lancio resta esattamente $\\frac{18}{37} \\approx 48.65\\%$. Pensare che il Nero debba uscire "per compensare" è la celebre <em>Fallacia dello Scommettitore</em>.`;
+      } else {
+        fb.className = "mt-3 p-3 rounded-lg text-xs leading-relaxed bg-rose-100 border border-rose-300 text-rose-900";
+        fb.innerHTML = `<strong>Attenzione! Sei caduto nella trappola del giocatore.</strong><br>
+        Hai risposto credendo che la frequenza passata influenzi il lancio futuro. Ma la probabilità del Nero resta ostinatamente $\\frac{18}{37} \\approx 48.65\\%$. I casinò espongono i tabelloni con i numeri ritardatari proprio per incoraggiare questa illusione cognitiva!`;
+      }
+      if (window.renderMathInElement) renderMathInElement(fb);
+    }
+
+    // ==========================================================
+    // MODULO 1: CAVALIERE DE MÉRÉ (1654)
+    // ==========================================================
+    let deMereData = {
+      totalGames: 0,
+      winsA: 0,
+      winsB: 0,
+      historyA: [],
+      historyB: [],
+      labels: []
+    };
+    let deMereChart = null;
+
+    function initDeMereChart() {
+      const ctx = document.getElementById('deMereChart').getContext('2d');
+      deMereChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Gioco A (1 dado, 4 lanci) - Empirico',
+              data: [],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2,
+              tension: 0.1,
+              pointRadius: 0
+            },
+            {
+              label: 'Gioco A Teorico (51.77%)',
+              data: [],
+              borderColor: '#059669',
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            },
+            {
+              label: 'Gioco B (2 dadi, 24 lanci) - Empirico',
+              data: [],
+              borderColor: '#f43f5e',
+              backgroundColor: 'rgba(244, 63, 94, 0.1)',
+              borderWidth: 2,
+              tension: 0.1,
+              pointRadius: 0
+            },
+            {
+              label: 'Gioco B Teorico (49.14%)',
+              data: [],
+              borderColor: '#e11d48',
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 35,
+              max: 65,
+              title: { display: true, text: '% Vittorie' }
+            },
+            x: {
+              title: { display: true, text: 'Partite' }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    function runDeMereSimulation(count) {
+      for (let g = 0; g < count; g++) {
+        deMereData.totalGames++;
+
+        // Gioco A: almeno un 6 in 4 lanci di 1 dado
+        let winA = false;
+        for (let l = 0; l < 4; l++) {
+          if (Math.floor(Math.random() * 6) + 1 === 6) {
+            winA = true;
+            break;
+          }
+        }
+        if (winA) deMereData.winsA++;
+
+        // Gioco B: almeno un doppio 6 in 24 lanci di 2 dadi
+        let winB = false;
+        for (let l = 0; l < 24; l++) {
+          const d1 = Math.floor(Math.random() * 6) + 1;
+          const d2 = Math.floor(Math.random() * 6) + 1;
+          if (d1 === 6 && d2 === 6) {
+            winB = true;
+            break;
+          }
+        }
+        if (winB) deMereData.winsB++;
+
+        // Campionamento per il grafico
+        if (deMereData.totalGames <= 100 || deMereData.totalGames % 20 === 0) {
+          deMereData.labels.push(deMereData.totalGames);
+          deMereData.historyA.push((deMereData.winsA / deMereData.totalGames) * 100);
+          deMereData.historyB.push((deMereData.winsB / deMereData.totalGames) * 100);
+        }
+      }
+
+      // Aggiorna UI
+      const tot = deMereData.totalGames;
+      const rateA = ((deMereData.winsA / tot) * 100).toFixed(2);
+      const rateB = ((deMereData.winsB / tot) * 100).toFixed(2);
+      document.getElementById('deMereGamesCount').textContent = `Partite: ${tot.toLocaleString()}`;
+      document.getElementById('resDeMereA').textContent = `${rateA}%`;
+      document.getElementById('resDeMereB').textContent = `${rateB}%`;
+
+      // Aggiorna Chart
+      deMereChart.data.labels = deMereData.labels;
+      deMereChart.data.datasets[0].data = deMereData.historyA;
+      deMereChart.data.datasets[1].data = deMereData.labels.map(() => 51.77);
+      deMereChart.data.datasets[2].data = deMereData.historyB;
+      deMereChart.data.datasets[3].data = deMereData.labels.map(() => 49.14);
+      deMereChart.update();
+    }
+
+    function resetDeMereSimulation() {
+      deMereData = { totalGames: 0, winsA: 0, winsB: 0, historyA: [], historyB: [], labels: [] };
+      document.getElementById('deMereGamesCount').textContent = "Partite: 0";
+      document.getElementById('resDeMereA').textContent = "0%";
+      document.getElementById('resDeMereB').textContent = "0%";
+      if (deMereChart) {
+        deMereChart.data.labels = [];
+        deMereChart.data.datasets.forEach(ds => ds.data = []);
+        deMereChart.update();
+      }
+    }
+
+    // ==========================================================
+    // MODULO 1: ROVINA DEL GIOCATORE (RUIN CHART)
+    // ==========================================================
+    let ruinChart = null;
+    let ruinInterval = null;
+    let ruinCapital = 100;
+    let ruinSpins = 0;
+    let ruinHistory = [100];
+    let ruinLabels = [0];
+
+    function initRuinChart() {
+      const ctx = document.getElementById('ruinChart').getContext('2d');
+      ruinChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [0],
+          datasets: [{
+            label: 'Capitale (€)',
+            data: [100],
+            borderColor: '#10b981',
+            borderWidth: 2,
+            tension: 0.1,
+            fill: true,
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { min: 0, title: { display: true, text: 'Euro (€)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function simulatePlayerRuin() {
+      if (ruinInterval) clearInterval(ruinInterval);
+      if (ruinCapital <= 0) resetPlayerRuin();
+
+      document.getElementById('ruinStatusText').textContent = "Partita in corso...";
+      document.getElementById('ruinStatusText').className = "text-amber-400 font-medium animate-pulse";
+
+      ruinInterval = setInterval(() => {
+        // Simula pacchetto di 5 lanci alla volta per fluidità
+        for (let i = 0; i < 3; i++) {
+          if (ruinCapital <= 0) {
+            clearInterval(ruinInterval);
+            document.getElementById('ruinStatusText').textContent = "BANCAROTTA RAGGIUNTA! Il banco ha incamerato tutto.";
+            document.getElementById('ruinStatusText').className = "text-rose-400 font-bold";
+            return;
+          }
+          ruinSpins++;
+          const num = Math.floor(Math.random() * 37);
+          const isRed = rouletteRedNumbers.includes(num);
+          if (isRed) {
+            ruinCapital += 5; // Vince 5€
+          } else {
+            ruinCapital -= 5; // Perde la puntata da 5€
+          }
+          ruinHistory.push(ruinCapital);
+          ruinLabels.push(ruinSpins);
+        }
+
+        document.getElementById('ruinCapital').textContent = `${ruinCapital} €`;
+        document.getElementById('ruinSpins').textContent = ruinSpins;
+
+        ruinChart.data.labels = ruinLabels;
+        ruinChart.data.datasets[0].data = ruinHistory;
+        ruinChart.data.datasets[0].borderColor = ruinCapital > 50 ? '#10b981' : '#f43f5e';
+        ruinChart.update();
+      }, 50);
+    }
+
+    function resetPlayerRuin() {
+      if (ruinInterval) clearInterval(ruinInterval);
+      ruinCapital = 100;
+      ruinSpins = 0;
+      ruinHistory = [100];
+      ruinLabels = [0];
+      document.getElementById('ruinCapital').textContent = "100 €";
+      document.getElementById('ruinSpins').textContent = "0";
+      document.getElementById('ruinStatusText').textContent = "In attesa di avvio";
+      document.getElementById('ruinStatusText').className = "text-slate-400";
+      if (ruinChart) {
+        ruinChart.data.labels = [0];
+        ruinChart.data.datasets[0].data = [100];
+        ruinChart.data.datasets[0].borderColor = '#10b981';
+        ruinChart.update();
+      }
+    }
+
+    // ==========================================================
+    // MODULO 2: QUIZ EPISTEMOLOGICO
+    // ==========================================================
+    const epistQuizQuestions = [
+      {
+        text: "Evento: «Lanciando un dado perfetto a 6 facce, esce un numero primo {2, 3, 5}».",
+        correct: "Classica",
+        explanation: "Lo spazio campionario è simmetrico e finito (6 casi equiprobabili). Ci sono 3 casi favorevoli su 6, quindi $P = 3/6 = 0.5$ senza bisogno di sperimentare."
+      },
+      {
+        text: "Evento: «Questo specifico microchip appena prodotto nella fabbrica ha un difetto di fabbricazione».",
+        correct: "Frequentista",
+        explanation: "Non c'è simmetria geometrica a priori. La probabilità si stima testando un campione enorme di chip ($n = 100.000$) e calcolando la frequenza relativa dei guasti."
+      },
+      {
+        text: "Evento: «Entro il 2035 l'essere umano sbarcherà su Marte».",
+        correct: "Soggettivista",
+        explanation: "Non esistono 'casi equiprobabili' né è possibile ripetere la storia dell'esplorazione spaziale 10.000 volte in condizioni identiche. È un evento unico: la probabilità esprime il grado di fiducia dell'esperto!"
+      }
+    ];
+
+    function initEpistQuiz() {
+      const container = document.getElementById('quizEpistContainer');
+      container.innerHTML = '';
+      epistQuizQuestions.forEach((q, idx) => {
+        const item = document.createElement('div');
+        item.className = "p-4 rounded-xl bg-slate-800 border border-slate-700 space-y-3";
+        item.innerHTML = `
+          <div class="text-sm font-medium text-slate-200">${q.text}</div>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <button onclick="checkEpistAnswer(${idx}, 'Classica')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-blue-600 transition text-white">Def. Classica</button>
+            <button onclick="checkEpistAnswer(${idx}, 'Frequentista')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-emerald-600 transition text-white">Def. Frequentista</button>
+            <button onclick="checkEpistAnswer(${idx}, 'Soggettivista')" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-purple-600 transition text-white">Def. Soggettivista</button>
+          </div>
+          <div id="epistFb-${idx}" class="hidden p-3 rounded-lg text-xs leading-relaxed"></div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function checkEpistAnswer(idx, chosen) {
+      const q = epistQuizQuestions[idx];
+      const fb = document.getElementById(`epistFb-${idx}`);
+      fb.classList.remove('hidden');
+      if (chosen === q.correct) {
+        fb.className = "p-3 rounded-lg text-xs leading-relaxed bg-emerald-950/60 border border-emerald-500/50 text-emerald-300";
+        fb.innerHTML = `<strong>Corretto! Definizione ${q.correct}.</strong> ${q.explanation}`;
+      } else {
+        fb.className = "p-3 rounded-lg text-xs leading-relaxed bg-rose-950/60 border border-rose-500/50 text-rose-300";
+        fb.innerHTML = `<strong>Non del tutto appropriato.</strong> La risposta più naturale è la <strong>Definizione ${q.correct}</strong>. ${q.explanation}`;
+      }
+      if (window.renderMathInElement) renderMathInElement(fb);
+    }
+
+    // ==========================================================
+    // MODULO 3: IL DUTCH BOOK (VERIFICATORE DI COERENZA)
+    // ==========================================================
+    let currentP1 = 0.50;
+    let currentPX = 0.30;
+    let currentP2 = 0.40;
+
+    function updateDutchBookInputs() {
+      currentP1 = parseFloat(document.getElementById('inputP1').value);
+      currentPX = parseFloat(document.getElementById('inputPX').value);
+      currentP2 = parseFloat(document.getElementById('inputP2').value);
+
+      document.getElementById('labelP1').textContent = `${currentP1.toFixed(2)} (${Math.round(currentP1 * 100)}%)`;
+      document.getElementById('labelPX').textContent = `${currentPX.toFixed(2)} (${Math.round(currentPX * 100)}%)`;
+      document.getElementById('labelP2').textContent = `${currentP2.toFixed(2)} (${Math.round(currentP2 * 100)}%)`;
+
+      const sum = currentP1 + currentPX + currentP2;
+      const sumBadge = document.getElementById('sumPBadge');
+      sumBadge.textContent = `${sum.toFixed(2)} (${Math.round(sum * 100)}%)`;
+
+      if (Math.abs(sum - 1.0) < 0.001) {
+        sumBadge.className = "text-lg font-black font-mono px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300";
+      } else {
+        sumBadge.className = "text-lg font-black font-mono px-3 py-1 rounded-lg bg-rose-100 text-rose-800 border border-rose-300";
+      }
+
+      evaluateDutchBook();
+    }
+
+    function setDutchExample(targetSum) {
+      if (targetSum === 1.20) {
+        document.getElementById('inputP1').value = 0.50;
+        document.getElementById('inputPX').value = 0.30;
+        document.getElementById('inputP2').value = 0.40;
+      } else if (targetSum === 0.80) {
+        document.getElementById('inputP1').value = 0.35;
+        document.getElementById('inputPX').value = 0.25;
+        document.getElementById('inputP2').value = 0.20;
+      } else {
+        document.getElementById('inputP1').value = 0.50;
+        document.getElementById('inputPX').value = 0.25;
+        document.getElementById('inputP2').value = 0.25;
+      }
+      updateDutchBookInputs();
+    }
+
+    function evaluateDutchBook() {
+      const sum = currentP1 + currentPX + currentP2;
+      const resultBox = document.getElementById('dutchBookResultBox');
+
+      if (Math.abs(sum - 1.0) < 0.001) {
+        resultBox.className = "p-6 rounded-2xl bg-emerald-50 border-2 border-emerald-300 space-y-3";
+        resultBox.innerHTML = `
+          <div class="flex items-center gap-2 text-emerald-800 font-bold text-base">
+            <i class="fa-solid fa-shield-halved text-emerald-600 text-xl"></i>
+            Sei COERENTE! Nessun Dutch Book possibile.
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            La somma delle tue probabilità è esattamente pari a <strong>1.00 (100%)</strong>.
+            Nessun giocatore avversario, per quanto abile, può combinare le scommesse sui 3 eventi per garantirti una perdita certa. Le tue quote soddisfano il Secondo Assioma di Kolmogorov!
+          </p>
+        `;
+      } else if (sum > 1.0) {
+        // Somma > 1: L'allibratore sopravvaluta gli eventi. Uno scommettitore compra 1 biglietto per ciascun evento.
+        // Lo scommettitore paga: p1 + pX + p2 = sum.
+        // In qualsiasi caso esce un esito, quindi lo scommettitore incassa 1€.
+        // Guadagno netto scommettitore = 1 - sum < 0? No: lo scommettitore VENDE i biglietti al banco!
+        // Reversibilità di de Finetti:
+        // Se sum > 1, lo scommettitore furbo VENDE a te banco un biglietto per ciascun esito:
+        // Tu (banco) paghi allo scommettitore: p1 + pX + p2 = sum€.
+        // Quando un esito vince, lo scommettitore deve pagarti 1€.
+        // Risultato netto per te (banco): ricevi 1€, ma hai pagato sum€!
+        // Perdita certa per te = sum - 1.
+        const loss = (sum - 1).toFixed(2);
+        resultBox.className = "p-6 rounded-2xl bg-rose-50 border-2 border-rose-300 space-y-4";
+        resultBox.innerHTML = `
+          <div class="flex items-center gap-2 text-rose-800 font-bold text-base">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-xl"></i>
+            ALLARME INCOERENZA: Dutch Book Subito! (Perdita garantita di ${loss} €)
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            La somma delle tue quote è <strong>${sum.toFixed(2)} > 1.00</strong>. Poiché le quote sono a doppio senso (reversibili), un avversario furbo ti <strong>vende</strong> un portafoglio composto da 1 biglietto su ciascun esito (1, X, 2):
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
+            <div class="p-2.5 bg-white rounded-lg border border-rose-200">
+              <span class="text-slate-500 block text-[10px]">Esito 1 vince:</span>
+              Tu incassi 1.00€ dal biglietto vincente.<br>
+              Ma hai pagato all'inizio ${sum.toFixed(2)}€.<br>
+              <strong class="text-rose-600">Bilancio: -${loss} €</strong>
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-rose-200">
+              <span class="text-slate-500 block text-[10px]">Esito X vince:</span>
+              Tu incassi 1.00€ dal biglietto vincente.<br>
+              Ma hai pagato all'inizio ${sum.toFixed(2)}€.<br>
+              <strong class="text-rose-600">Bilancio: -${loss} €</strong>
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-rose-200">
+              <span class="text-slate-500 block text-[10px]">Esito 2 vince:</span>
+              Tu incassi 1.00€ dal biglietto vincente.<br>
+              Ma hai pagato all'inizio ${sum.toFixed(2)}€.<br>
+              <strong class="text-rose-600">Bilancio: -${loss} €</strong>
+            </div>
+          </div>
+          <p class="text-[11px] text-rose-900 font-medium">
+            💡 <strong>Lezione epistemologica:</strong> Hai perso soldi <em>senza bisogno di affidarsi alla fortuna</em>! L'incoerenza logica ti condanna al fallimento certo.
+          </p>
+        `;
+      } else {
+        // sum < 1. Lo scommettitore COMPRA da te 1 biglietto per ciascun esito pagando sum < 1.
+        // Qualsiasi esito vinca, tu devi pagare 1€ allo scommettitore.
+        // Incassi sum, paghi 1. Perdita netta = 1 - sum.
+        const loss = (1 - sum).toFixed(2);
+        resultBox.className = "p-6 rounded-2xl bg-rose-50 border-2 border-rose-300 space-y-4";
+        resultBox.innerHTML = `
+          <div class="flex items-center gap-2 text-rose-800 font-bold text-base">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-xl"></i>
+            ALLARME INCOERENZA: Dutch Book Subito! (Perdita garantita di ${loss} €)
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            La somma delle tue quote è <strong>${sum.toFixed(2)} < 1.00</strong>. Uno scommettitore furbo <strong>compra</strong> da te 1 biglietto su ciascuno dei 3 esiti, pagandoti in totale solo ${sum.toFixed(2)} €:
+          </p>
+          <div class="p-3 bg-white rounded-lg border border-rose-200 text-xs font-mono">
+            Qualunque squadra vinca (o pareggi), uno dei biglietti venduti risulterà vincente. Tu dovrai pagare 1.00 € al cliente, avendo incassato solo ${sum.toFixed(2)} €.<br>
+            <strong class="text-rose-600 block mt-1">Il tuo bilancio è SEMPRE: ${sum.toFixed(2)} - 1.00 = -${loss} €</strong>
+          </div>
+          <p class="text-[11px] text-rose-900 font-medium">
+            💡 <strong>Conclusione di de Finetti:</strong> La condizione che la somma delle probabilità di eventi incompatibili ed esaustivi sia esattamente 1 non è un dogma calato dall'alto, ma l'unico modo per non farsi spennare!
+          </p>
+        `;
+      }
+    }
+
+    // ==========================================================
+    // MODULO 3: BRIER SCORE (TEST DI CALIBRAZIONE)
+    // ==========================================================
+    const brierQuestions = [
+      {
+        q: "La Grande Muraglia Cinese è visibile ad occhio nudo dall'orbita lunare?",
+        correctOption: false, // Falso
+        promptA: "Vero",
+        promptB: "Falso"
+      },
+      {
+        q: "Il numero di atomi in un grammo d'oro è maggiore del numero di stelle nella Via Lattea?",
+        correctOption: true, // Vero: in 1g d'oro ci sono ~3 * 10^21 atomi, le stelle nella galassia sono ~10^11.
+        promptA: "Vero",
+        promptB: "Falso"
+      },
+      {
+        q: "Blaise Pascal ha inventato una delle prime calcolatrici meccaniche della storia (la Pascalina)?",
+        correctOption: true, // Vero
+        promptA: "Vero",
+        promptB: "Falso"
+      },
+      {
+        q: "La velocità della luce nel vuoto dipende dal moto della sorgente che la emette?",
+        correctOption: false, // Falso (postulato di Einstein)
+        promptA: "Vero",
+        promptB: "Falso"
+      }
+    ];
+
+    function initBrierQuestions() {
+      const container = document.getElementById('brierQuestionsContainer');
+      container.innerHTML = '';
+      brierQuestions.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = "p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3";
+        div.innerHTML = `
+          <div class="text-xs font-bold text-slate-800">${idx + 1}. ${item.q}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <span class="text-[11px] text-slate-500 block mb-1">La tua risposta:</span>
+              <div class="flex gap-2">
+                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                  <input type="radio" name="brierAns-${idx}" value="true" checked class="accent-purple-600"> ${item.promptA}
+                </label>
+                <label class="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer">
+                  <input type="radio" name="brierAns-${idx}" value="false" class="accent-purple-600"> ${item.promptB}
+                </label>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between items-center text-[11px] text-slate-500 mb-1">
+                <span>Quanto sei sicuro di avere ragione?</span>
+                <span id="brierConfLabel-${idx}" class="font-bold text-purple-700">75%</span>
+              </div>
+              <input type="range" id="brierConf-${idx}" min="50" max="100" step="5" value="75" oninput="document.getElementById('brierConfLabel-${idx}').textContent = this.value + '%'" class="w-full accent-purple-600">
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function calculateBrierScore() {
+      let totalBrier = 0;
+      let correctCount = 0;
+      let avgConfidence = 0;
+
+      brierQuestions.forEach((item, idx) => {
+        const selectedRadio = document.querySelector(`input[name="brierAns-${idx}"]:checked`);
+        const userChoice = selectedRadio.value === 'true';
+        const confPercent = parseInt(document.getElementById(`brierConf-${idx}`).value);
+        const p = confPercent / 100; // La probabilità soggettiva attribuita alla propria risposta
+        avgConfidence += confPercent;
+
+        const isCorrect = userChoice === item.correctOption;
+        if (isCorrect) correctCount++;
+
+        // Outcome o_i: 1 se corretto, 0 se errato
+        const o = isCorrect ? 1 : 0;
+        // Brier component: (p - o)^2
+        const diff = p - o;
+        totalBrier += diff * diff;
+      });
+
+      const n = brierQuestions.length;
+      const brierScore = (totalBrier / n).toFixed(3);
+      const accRate = Math.round((correctCount / n) * 100);
+      avgConfidence = Math.round(avgConfidence / n);
+
+      const resBox = document.getElementById('brierResultBox');
+      resBox.classList.remove('hidden');
+
+      let comment = "";
+      if (avgConfidence > accRate + 15) {
+        comment = `<strong class="text-rose-700">Effetto Overconfidence (Sovrasicurezza):</strong> Avevi una fiducia media del <strong>${avgConfidence}%</strong>, ma la tua accuratezza effettiva è stata del <strong>${accRate}%</strong>. Tipico della mente umana!`;
+      } else if (Math.abs(avgConfidence - accRate) <= 15) {
+        comment = `<strong class="text-emerald-700">Ottima Calibrazione!</strong> La tua fiducia soggettiva (${avgConfidence}%) è in armonia con le tue effettive prestazioni (${accRate}%). Sei un pensatore deFinettiano maturo!`;
+      } else {
+        comment = `<strong class="text-blue-700">Underconfidence:</strong> Ti sei sottovalutato! Eri più cauto di quanto le tue conoscenze giustificassero.`;
+      }
+
+      resBox.innerHTML = `
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <div class="text-sm font-bold text-purple-900">Il tuo Indice di Brier: <span class="font-mono text-xl">${brierScore}</span></div>
+          <div class="text-xs text-purple-700 font-mono">(0.000 = Onniscienza perfetta | 0.250 = Scelta a caso 50/50)</div>
+        </div>
+        <div class="text-xs text-slate-700 space-y-1">
+          <div>Risposte esatte: <strong>${correctCount} su ${n} (${accRate}%)</strong></div>
+          <div>Fiducia media dichiarata: <strong>${avgConfidence}%</strong></div>
+          <div class="pt-2 text-xs">${comment}</div>
+        </div>
+      `;
+    }
+
+    // ==========================================================
+    // MODULO 4: AGGIORNAMENTO BAYESIANO (DADO SOSPETTO)
+    // ==========================================================
+    let bayesState = {
+      isLoadedSecretDie: false, // se true, p(6) = 0.5, altrimenti 1/6
+      rollsCount: 0,
+      sixCount: 0,
+      historyProb: [0.20], // parte dal 20%
+      labels: [0]
+    };
+    let bayesChart = null;
+
+    function initBayesChart() {
+      const ctx = document.getElementById('bayesChart').getContext('2d');
+      bayesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [0],
+          datasets: [
+            {
+              label: 'Probabilità Soggettiva P(Dado Truccato | Dati)',
+              data: [20],
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.1)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.1,
+              pointRadius: 2
+            },
+            {
+              label: 'Prior Iniziale (20%)',
+              data: [20],
+              borderColor: '#94a3b8',
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              title: { display: true, text: 'Probabilità Soggettiva (%)' }
+            },
+            x: {
+              title: { display: true, text: 'Lanci Effettuati' }
+            }
+          },
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } }
+          }
+        }
+      });
+    }
+
+    function pickSecretDie(isLoaded) {
+      if (isLoaded === null) {
+        // Estrazione casuale dal sacchetto con probabilità 1/5
+        bayesState.isLoadedSecretDie = Math.random() < 0.20;
+      } else {
+        bayesState.isLoadedSecretDie = isLoaded;
+      }
+      resetBayesExperiment(false);
+
+      const verdict = document.getElementById('currentBayesVerdict');
+      verdict.textContent = "Nuovo dado pescato! Procedi con i lanci per indagare.";
+      verdict.className = "text-xs font-bold text-indigo-600 mt-1";
+    }
+
+    function rollSecretDie(times = 1) {
+      for (let t = 0; t < times; t++) {
+        bayesState.rollsCount++;
+
+        let outcome = 0;
+        if (bayesState.isLoadedSecretDie) {
+          // 50% prob di fare 6, altrimenti 1..5 equamente
+          if (Math.random() < 0.5) {
+            outcome = 6;
+          } else {
+            outcome = Math.floor(Math.random() * 5) + 1; // 1..5
+          }
+        } else {
+          // Dado equo: 1/6 ciascuno
+          outcome = Math.floor(Math.random() * 6) + 1;
+        }
+
+        if (outcome === 6) bayesState.sixCount++;
+
+        // Aggiornamento Bayesiano
+        // P(T) corrente è l'ultimo valore della serie
+        const priorT = bayesState.historyProb[bayesState.historyProb.length - 1];
+        const priorF = 1 - priorT;
+
+        let likT = 0; // P(outcome | Truccato)
+        let likF = 0; // P(outcome | Equo)
+
+        if (outcome === 6) {
+          likT = 0.5;
+          likF = 1.0 / 6.0;
+        } else {
+          likT = 0.1; // 0.5 diviso tra i 5 numeri rimanenti = 0.10
+          likF = 1.0 / 6.0; // 5/6 diviso tra i 5 numeri = 1/6
+        }
+
+        const evidence = (likT * priorT) + (likF * priorF);
+        const posteriorT = (likT * priorT) / evidence;
+
+        bayesState.historyProb.push(posteriorT);
+        bayesState.labels.push(bayesState.rollsCount);
+
+        document.getElementById('bayesLastRoll').textContent = outcome;
+        if (outcome === 6) {
+          document.getElementById('bayesLastRoll').className = "text-4xl font-black text-rose-500 my-1 animate-bounce";
+        } else {
+          document.getElementById('bayesLastRoll').className = "text-4xl font-black text-slate-200 my-1";
+        }
+      }
+
+      updateBayesUI();
+    }
+
+    function updateBayesUI() {
+      const currentProb = bayesState.historyProb[bayesState.historyProb.length - 1];
+      const probPercent = (currentProb * 100).toFixed(1);
+
+      document.getElementById('currentPosteriorProb').textContent = `${probPercent}%`;
+      document.getElementById('bayesRollsStats').textContent = `Lanci totali: ${bayesState.rollsCount} | Numero di 6 usciti: ${bayesState.sixCount} (${bayesState.rollsCount > 0 ? ((bayesState.sixCount/bayesState.rollsCount)*100).toFixed(1) : 0}%)`;
+
+      const verdict = document.getElementById('currentBayesVerdict');
+      if (currentProb > 0.90) {
+        verdict.textContent = "Quasi CERTEZZA: Il dado è truccato!";
+        verdict.className = "text-xs font-bold text-rose-600 mt-1";
+      } else if (currentProb < 0.05) {
+        verdict.textContent = "Quasi CERTEZZA: Il dado è onesto (equo).";
+        verdict.className = "text-xs font-bold text-emerald-600 mt-1";
+      } else {
+        verdict.textContent = "Evidenza ancora parziale: continua i lanci.";
+        verdict.className = "text-xs font-bold text-slate-700 mt-1";
+      }
+
+      // Chart update
+      bayesChart.data.labels = bayesState.labels;
+      bayesChart.data.datasets[0].data = bayesState.historyProb.map(p => p * 100);
+      bayesChart.data.datasets[1].data = bayesState.labels.map(() => 20);
+      bayesChart.update();
+    }
+
+    function resetBayesExperiment(resetSecret = true) {
+      if (resetSecret) bayesState.isLoadedSecretDie = Math.random() < 0.20;
+      bayesState.rollsCount = 0;
+      bayesState.sixCount = 0;
+      bayesState.historyProb = [0.20];
+      bayesState.labels = [0];
+
+      document.getElementById('bayesLastRoll').textContent = "-";
+      document.getElementById('bayesLastRoll').className = "text-4xl font-black text-amber-400 my-1";
+      document.getElementById('currentPosteriorProb').textContent = "20.0%";
+      document.getElementById('bayesRollsStats').textContent = "Lanci totali: 0 | Numero di 6 usciti: 0";
+      document.getElementById('currentBayesVerdict').textContent = "Incertezza iniziale (Prior)";
+      document.getElementById('currentBayesVerdict').className = "text-xs font-bold text-slate-700 mt-1";
+
+      if (bayesChart) {
+        bayesChart.data.labels = [0];
+        bayesChart.data.datasets[0].data = [20];
+        bayesChart.data.datasets[1].data = [20];
+        bayesChart.update();
+      }
+    }
+
+    // ==========================================================
+    // INITIALIZATION ON LOAD
+    // ==========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      initDeMereChart();
+      initRuinChart();
+      initEpistQuiz();
+      updateDutchBookInputs();
+      initBrierQuestions();
+      initBayesChart();
+    });
+  </script>
+</body>
+</html>
